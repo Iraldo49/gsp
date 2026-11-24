@@ -1,372 +1,672 @@
 <!doctype html>
 <html lang="pt">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GPS - Global services & project soc unip Lda</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GPS - Global services & project soc unip Lda</title>
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Ícones Lucide -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <!-- APLICAÇÃO -->
+    <div class="app">
+      <!-- Backdrop (só em mobile, quando a sidebar está aberta) -->
+      <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-  <!-- Fontes -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <!-- Botão que colapsa (desktop) / fecha (mobile) -->
+        <button
+          class="sidebar-toggle"
+          id="sidebar-toggle"
+          aria-label="Alternar menu"
+          aria-expanded="true"
+        >
+          <i data-lucide="panel-left-close"></i>
+        </button>
 
-  <!-- Ícones Lucide -->
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js"></script>
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">GSP</div>
+          <div class="brand-text">
+            <!-- <strong>GSP</strong> -->
+            <small>GLOBAL SERVICES &amp;<br>PROJECT SOC UNIP LDA</small>
+          </div>
+        </div>
 
-  <!-- Estilos -->
-  <link rel="stylesheet" href="css/styles.css">
- </head>
- <body>
-
-  <!-- ============================================================
-       APLICAÇÃO
-       ============================================================ -->
-  <div class="app">
-
-   <!-- Backdrop (só em mobile, quando a sidebar está aberta) -->
-   <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
-
-   <!-- ============================================================
-        SIDEBAR
-        ============================================================ -->
-   <aside class="sidebar" id="sidebar">
-
-    <!-- Botão que colapsa (desktop) / fecha (mobile) -->
-    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Alternar menu" aria-expanded="true">
-     <i data-lucide="panel-left-close"></i>
-    </button>
-
-    <div class="brand">
-     <div class="brand-mark" aria-hidden="true">🥐</div>
-     <div class="brand-text">
-      <strong>GSP</strong>
-      <small>GLOBAL SERVICES  &amp; PROJECT SOC UNIP LDA</small>
-     </div>
-    </div>
-
-    <p class="nav-label">MENU PRINCIPAL</p>
-    <nav aria-label="Navegação principal">
-     <button class="nav-button active" data-view="overview" title="Visão geral">
-      <i data-lucide="layout-dashboard"></i><span class="nav-text">Visão geral</span>
-     </button>
-     <button class="nav-button" data-view="products" title="Mercadorias">
-      <i data-lucide="package"></i><span class="nav-text">Mercadorias</span>
-     </button>
+        <p class="nav-label">MENU PRINCIPAL</p>
+        <nav aria-label="Navegação principal">
+          <button class="nav-button active" data-view="overview" title="Visão geral">
+            <i data-lucide="layout-dashboard"></i>
+            <span class="nav-text">Visão geral</span>
+          </button>
+          <button class="nav-button" data-view="products" title="Mercadorias">
+            <i data-lucide="package"></i>
+            <span class="nav-text">Mercadorias</span>
+          </button>
           <button class="nav-button" data-view="vendas" title="Vendas">
-      <i data-lucide="scan-barcode"></i><span class="nav-text">Vendas</span>
-     </button>
-     <!-- NOVO: Mesas -->
-     <button class="nav-button" data-view="tables" title="Mesas">
-      <i data-lucide="utensils"></i><span class="nav-text">Mesas</span>
-     </button>
-     <button class="nav-button" data-view="billing" title="Facturação">
-      <i data-lucide="receipt-text"></i><span class="nav-text">Facturação</span>
-     <!-- </button>
+            <i data-lucide="scan-barcode"></i>
+            <span class="nav-text">Vendas</span>
+          </button>
+                  <button class="nav-button" data-view="tables" title="Mesas">
+            <i data-lucide="utensils"></i><span class="nav-text">Mesas</span>
+          </button>
+
+          <!-- NOVO: Restaurante -->
+          <button class="nav-button" data-view="restaurant" title="Restaurante">
+            <i data-lucide="chef-hat"></i><span class="nav-text">Restaurante</span>
+          </button>
+
           <button class="nav-button" data-view="billing" title="Facturação">
-      <i data-lucide="receipt-text"></i><span class="nav-text">Facturação</span>
-     </button> -->
-     <!-- NOVO: Relatórios -->
-     <button class="nav-button" data-view="reports" title="Relatórios">
-      <i data-lucide="bar-chart-3"></i><span class="nav-text">Relatórios</span>
-     </button>
-    </nav>
+            <i data-lucide="receipt-text"></i><span class="nav-text">Facturação</span>
+         
+          </button>
+          <button class="nav-button" data-view="reports" title="Relatórios">
+            <i data-lucide="bar-chart-3"></i>
+            <span class="nav-text">Relatórios</span>
+          </button>
+        </nav>
 
-    <div class="sidebar-bottom">Tudo o que precisa para gerir a sua pastelaria, num só lugar.</div>
-   </aside>
-
-   <!-- ============================================================
-        CONTEÚDO PRINCIPAL
-        ============================================================ -->
-   <main class="content">
-
-    <header class="topbar">
-     <div class="topbar-left">
-      <!-- Botão hambúrguer (só mobile) -->
-      <button class="menu-button" id="menu-button" aria-label="Abrir menu">
-       <i data-lucide="menu"></i>
-      </button>
-      <div>
-       <p class="eyebrow">PAINEL DE GESTÃO</p>
-       <h1 id="page-title">Bom dia, pastelaria!</h1>
-       <p id="page-subtitle" class="subtle">Uma visão simples do seu negócio.</p>
-      </div>
-     </div>
-     <div id="today-label" class="date-chip"></div>
-    </header>
-
-    <div id="status" class="status" role="status" aria-live="polite"></div>
-
-    <!-- ===================== VISÃO GERAL ===================== -->
-    <section id="overview" class="view active" aria-label="Visão geral">
-     <div class="stats">
-      <div class="stat"><div class="stat-icon"><i data-lucide="package"></i></div><div class="label">Mercadorias</div><div id="stat-products" class="number">0</div></div>
-      <div class="stat"><div class="stat-icon"><i data-lucide="boxes"></i></div><div class="label">Unidades em stock</div><div id="stat-stock" class="number">0</div></div>
-      <div class="stat"><div class="stat-icon"><i data-lucide="receipt"></i></div><div class="label">Facturas emitidas</div><div id="stat-invoices" class="number">0</div></div>
-      <div class="stat"><div class="stat-icon"><i data-lucide="wallet"></i></div><div class="label">Total facturado</div><div id="stat-revenue" class="number">0,00 MT</div></div>
-     </div>
-     <div class="grid-two">
-      <div class="panel">
-       <div class="panel-head"><div><h2>Mercadorias recentes</h2><p class="subtle">Os últimos artigos cadastrados.</p></div></div>
-       <div id="recent-products"></div>
-      </div>
-      <div class="panel">
-       <h2>Comece por aqui</h2>
-       <p class="subtle">Aceda rapidamente às tarefas do dia-a-dia.</p>
-       <div class="quick-actions">
-        <button id="quick-product" class="quick-action"><i data-lucide="plus-circle"></i> Cadastrar mercadoria</button>
-        <button id="quick-venda" class="quick-action"><i data-lucide="scan-barcode"></i> Iniciar venda</button>
-        <button id="quick-invoice" class="quick-action"><i data-lucide="file-plus-2"></i> Emitir factura</button>
-       </div>
-      </div>
-     </div>
-    </section>
-
-    <!-- ===================== MERCADORIAS ===================== -->
-    <section id="products" class="view" aria-label="Mercadorias">
-     <div class="section-head">
-      <div><h2>Mercadorias</h2><p class="subtle">Organize o seu catálogo e acompanhe o stock.</p></div>
-      <button id="add-product" class="button"><i data-lucide="plus"></i> Nova mercadoria</button>
-     </div>
-     <div class="panel">
-      <div class="toolbar">
-       <div class="search">
-        <i data-lucide="search"></i>
-        <input id="product-search" type="search" aria-label="Pesquisar mercadorias" placeholder="Pesquisar por nome, referência ou código de barras">
-       </div>
-       <span id="product-count" class="subtle">0 artigos</span>
-      </div>
-      <div id="product-table" class="table-wrap"></div>
-     </div>
-    </section>
-
-    <!-- ===================== VENDAS (POS) ===================== -->
-    <section id="vendas" class="view" aria-label="Vendas">
-     <div class="section-head">
-      <div><h2>Vendas</h2><p class="subtle">Pesquise por código de barras ou selecione produtos para registar uma venda.</p></div>
-      <button id="pos-clear" class="button ghost"><i data-lucide="rotate-ccw"></i> Limpar venda</button>
-     </div>
-
-     <div class="pos-layout">
-      <div class="panel">
-       <h3>Seleção de produtos</h3>
-       <p class="subtle">Leia o código de barras ou pesquise pelo nome/referência.</p>
-
-       <div class="barcode-box" style="margin-top:16px">
-        <div class="field" style="flex:1">
-         <label for="pos-barcode">Código de barras / Referência</label>
-         <input id="pos-barcode" type="search" autocomplete="off" placeholder="Ex.: 5601234567890 ou PAS-001" maxlength="40">
+        <div class="sidebar-bottom">
+         Desenvolvido por <a href="https://www.mutechsolutions.co.mz" target="_blank">Mutech Solutions</a> &copy; 2026
         </div>
-        <button id="pos-barcode-add" class="button" style="height:42px"><i data-lucide="plus"></i> Adicionar</button>
-       </div>
-       <p class="barcode-hint">Dica: prima <kbd>Enter</kbd> após ler o código para adicionar imediatamente.</p>
+      </aside>
 
-       <div class="search" style="max-width:none;margin-top:16px">
-        <i data-lucide="search"></i>
-        <input id="pos-search" type="search" autocomplete="off" placeholder="Filtrar produtos por nome, referência ou categoria">
-       </div>
+      <!-- CONTEÚDO PRINCIPAL -->
+      <main class="content">
+        <header class="topbar">
+          <div class="topbar-left">
+            <!-- Botão hambúrguer (só mobile) -->
+            <button class="menu-button" id="menu-button" aria-label="Abrir menu">
+              <i data-lucide="menu"></i>
+            </button>
+            <div>
+              <p class="eyebrow">PAINEL DE GESTÃO</p>
+              <p id="page-subtitle" class="subtle">
+                Uma visão simples do seu negócio.
+              </p>
+            </div>
+          </div>
+          <div id="today-label" class="date-chip"></div>
+        </header>
 
-       <div id="pos-results" class="pos-results"></div>
-      </div>
+        <div id="status" class="status" role="status" aria-live="polite"></div>
 
-      <div class="panel">
-       <div class="panel-head" style="margin-bottom:14px">
-        <div><h3>Venda atual</h3><p class="subtle" id="pos-cart-count">0 artigos</p></div>
-       </div>
+        <!-- ===================== VISÃO GERAL ===================== -->
+        <section id="overview" class="view active" aria-label="Visão geral">
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-icon"><i data-lucide="package"></i></div>
+              <div class="label">Mercadorias</div>
+              <div id="stat-products" class="number">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon"><i data-lucide="boxes"></i></div>
+              <div class="label">Unidades em stock</div>
+              <div id="stat-stock" class="number">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon"><i data-lucide="receipt"></i></div>
+              <div class="label">Facturas emitidas</div>
+              <div id="stat-invoices" class="number">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon"><i data-lucide="wallet"></i></div>
+              <div class="label">Total facturado</div>
+              <div id="stat-revenue" class="number">0,00 MT</div>
+            </div>
+          </div>
 
-       <div class="field">
-        <label for="pos-customer">Cliente</label>
-        <input id="pos-customer" placeholder="Cliente balcão" maxlength="100">
-       </div>
+          <div class="grid-two">
+            <div class="panel">
+              <div class="panel-head">
+                <div>
+                  <h2>Mercadorias recentes</h2>
+                  <p class="subtle">Os últimos artigos cadastrados.</p>
+                </div>
+              </div>
+              <div id="recent-products"></div>
+            </div>
 
-       <div id="pos-cart" style="margin-top:16px"></div>
+            <div class="panel">
+              <h2>Comece por aqui</h2>
+              <p class="subtle">Aceda rapidamente às tarefas do dia-a-dia.</p>
+              <div class="quick-actions">
+                <button id="quick-product" class="quick-action">
+                  <i data-lucide="plus-circle"></i> Cadastrar mercadoria
+                </button>
+                <button id="quick-venda" class="quick-action">
+                  <i data-lucide="scan-barcode"></i> Iniciar venda
+                </button>
+                <button id="quick-invoice" class="quick-action">
+                  <i data-lucide="file-plus-2"></i> Emitir factura
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-       <div class="pos-total-row">
-        <span>Total</span><strong id="pos-total">0,00 MT</strong>
-       </div>
+        <!-- ===================== MERCADORIAS ===================== -->
+        <section id="products" class="view" aria-label="Mercadorias">
+          <div class="section-head">
+            <div>
+              <h2>Mercadorias</h2>
+              <p class="subtle">Organize o seu catálogo e acompanhe o stock.</p>
+            </div>
+            <button id="add-product" class="button">
+              <i data-lucide="plus"></i> Nova mercadoria
+            </button>
+          </div>
 
-       <div class="form-actions" style="margin-top:18px">
-        <button id="pos-checkout" class="button" style="width:100%"><i data-lucide="check"></i> Finalizar venda</button>
-       </div>
-      </div>
-     </div>
-    </section>
+          <div class="panel">
+            <div class="toolbar">
+              <div class="search">
+                <i data-lucide="search"></i>
+                <input
+                  id="product-search"
+                  type="search"
+                  aria-label="Pesquisar mercadorias"
+                  placeholder="Pesquisar por nome, referência ou código de barras"
+                />
+              </div>
+              <span id="product-count" class="subtle">0 artigos</span>
+            </div>
+            <div id="product-table" class="table-wrap"></div>
+          </div>
+        </section>
+
+        <!-- ===================== VENDAS (POS) ===================== -->
+        <section id="vendas" class="view" aria-label="Vendas">
+          <div class="section-head">
+            <div>
+              <h2>Vendas</h2>
+              <p class="subtle">
+                Pesquise por código de barras ou selecione produtos para registar uma venda.
+              </p>
+            </div>
+            <button id="pos-clear" class="button ghost">
+              <i data-lucide="rotate-ccw"></i> Limpar venda
+            </button>
+          </div>
+
+          <div class="pos-layout">
+            <div class="panel">
+              <h3>Seleção de produtos</h3>
+              <p class="subtle">
+                Leia o código de barras ou pesquise pelo nome/referência.
+              </p>
+
+              <div class="barcode-box" style="margin-top: 16px">
+                <div class="field" style="flex: 1">
+                  <label for="pos-barcode">Código de barras / Referência</label>
+                  <input
+                    id="pos-barcode"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Ex.: 5601234567890 ou PAS-001"
+                    maxlength="40"
+                  />
+                </div>
+                <button id="pos-barcode-add" class="button" style="height: 42px">
+                  <i data-lucide="plus"></i> Adicionar
+                </button>
+              </div>
+              <p class="barcode-hint">
+                Dica: prima <kbd>Enter</kbd> após ler o código para adicionar imediatamente.
+              </p>
+
+              <div class="search" style="max-width: none; margin-top: 16px">
+                <i data-lucide="search"></i>
+                <input
+                  id="pos-search"
+                  type="search"
+                  autocomplete="off"
+                  placeholder="Filtrar produtos por nome, referência ou categoria"
+                />
+              </div>
+              <div id="pos-results" class="pos-results"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head" style="margin-bottom: 14px">
+                <div>
+                  <h3>Venda atual</h3>
+                  <p class="subtle" id="pos-cart-count">0 artigos</p>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="pos-customer">Cliente</label>
+                <input id="pos-customer" placeholder="Cliente balcão" maxlength="100" />
+              </div>
+
+              <div id="pos-cart" style="margin-top: 16px"></div>
+
+              <div class="pos-total-row">
+                <span>Total</span><strong id="pos-total">0,00 MT</strong>
+              </div>
+
+              <div class="form-actions" style="margin-top: 18px">
+                <button id="pos-checkout" class="button" style="width: 100%">
+                  <i data-lucide="check"></i> Finalizar venda
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- ===================== MESAS ===================== -->
-    <section id="tables" class="view" aria-label="Mesas">
-     <div class="section-head">
-      <div><h2>Mesas</h2><p class="subtle">Abra uma mesa, adicione pedidos e feche a conta quando o cliente terminar.</p></div>
-      <button id="table-new" class="button"><i data-lucide="plus"></i> Abrir mesa</button>
-     </div>
+        <section id="tables" class="view" aria-label="Mesas">
+          <div class="section-head">
+            <div>
+              <h2>Mesas</h2>
+              <p class="subtle">
+                Abra uma mesa, adicione pedidos e feche a conta quando o cliente terminar.
+              </p>
+            </div>
+            <button id="table-new" class="button">
+              <i data-lucide="plus"></i> Abrir mesa
+            </button>
+          </div>
 
-     <!-- Grelha de mesas (abertas + slots para abrir nova) -->
-     <div id="tables-grid" class="tables-grid"></div>
+          <div id="tables-grid" class="tables-grid"></div>
 
-     <!-- Painel de detalhe da mesa selecionada -->
-     <div id="table-detail" class="panel" style="margin-top:22px;display:none">
-      <div class="table-head-card" id="table-head"></div>
+          <div id="table-detail" class="panel" style="margin-top: 22px; display: none">
+            <div class="table-head-card" id="table-head"></div>
+            <div class="table-open-layout">
+              <div>
+                <h3>Adicionar pedido</h3>
+                <p class="subtle">Leia o código de barras ou pesquise pelo nome.</p>
 
-      <div class="table-open-layout">
-       <!-- Coluna esquerda: adicionar pedidos -->
-       <div>
-        <h3>Adicionar pedido</h3>
-        <p class="subtle">Leia o código de barras ou pesquise pelo nome.</p>
+                <div class="barcode-box" style="margin-top: 14px">
+                  <div class="field" style="flex: 1">
+                    <label for="table-barcode">Código de barras / Referência</label>
+                    <input
+                      id="table-barcode"
+                      type="search"
+                      autocomplete="off"
+                      placeholder="Ex.: 5601234567890 ou PAS-001"
+                      maxlength="40"
+                    />
+                  </div>
+                  <button id="table-barcode-add" class="button" style="height: 42px">
+                    <i data-lucide="plus"></i> Adicionar
+                  </button>
+                </div>
+                <p class="barcode-hint">
+                  Prima <kbd>Enter</kbd> após ler o código para adicionar imediatamente.
+                </p>
 
-        <div class="barcode-box" style="margin-top:14px">
-         <div class="field" style="flex:1">
-          <label for="table-barcode">Código de barras / Referência</label>
-          <input id="table-barcode" type="search" autocomplete="off" placeholder="Ex.: 5601234567890 ou PAS-001" maxlength="40">
-         </div>
-         <button id="table-barcode-add" class="button" style="height:42px"><i data-lucide="plus"></i> Adicionar</button>
-        </div>
-        <p class="barcode-hint">Prima <kbd>Enter</kbd> após ler o código para adicionar imediatamente.</p>
+                <div class="search" style="max-width: none; margin-top: 16px">
+                  <i data-lucide="search"></i>
+                  <input
+                    id="table-search"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Filtrar produtos por nome, referência ou categoria"
+                  />
+                </div>
+                <div id="table-results" class="pos-results"></div>
+              </div>
 
-        <div class="search" style="max-width:none;margin-top:16px">
-         <i data-lucide="search"></i>
-         <input id="table-search" type="search" autocomplete="off" placeholder="Filtrar produtos por nome, referência ou categoria">
-        </div>
+              <div>
+                <h3>Pedidos da mesa</h3>
+                <p class="subtle" id="table-order-count">0 artigos</p>
+                <div id="table-order" style="margin-top: 12px"></div>
 
-        <div id="table-results" class="pos-results"></div>
-       </div>
+                <div class="pos-total-row">
+                  <span>Total</span><strong id="table-total">0,00 MT</strong>
+                </div>
 
-       <!-- Coluna direita: pedidos acumulados -->
-       <div>
-        <h3>Pedidos da mesa</h3>
-        <p class="subtle" id="table-order-count">0 artigos</p>
+                <div class="form-actions" style="margin-top: 18px; flex-direction: column; gap: 8px">
+                  <button id="table-close" class="button" style="width: 100%">
+                    <i data-lucide="receipt"></i> Fechar conta e imprimir
+                  </button>
+                  <button id="table-cancel" class="button danger" style="width: 100%">
+                    <i data-lucide="x"></i> Cancelar mesa
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+                <!-- ===================== RESTAURANTE ===================== -->
+        <section id="restaurant" class="view" aria-label="Restaurante">
+          <div class="section-head">
+            <div>
+              <h2>Restaurante</h2>
+              <p class="subtle">Hambúrgueres, sandes, pregos, frango, pizza e mais.</p>
+            </div>
+            <button id="rest-clear" class="button ghost">
+              <i data-lucide="rotate-ccw"></i> Limpar pedido
+            </button>
+          </div>
 
-        <div id="table-order" style="margin-top:12px"></div>
+          <!-- Filtros por categoria (tabs) -->
+          <div class="menu-tabs" id="rest-tabs"></div>
 
-        <div class="pos-total-row">
-         <span>Total</span><strong id="table-total">0,00 MT</strong>
-        </div>
+          <div class="restaurant-layout">
+            <!-- Coluna esquerda: menu -->
+            <div class="panel">
+              <div class="toolbar" style="margin-bottom:14px">
+                <div class="search" style="max-width:none">
+                  <i data-lucide="search"></i>
+                  <input id="rest-search" type="search" autocomplete="off"
+                         placeholder="Pesquisar por nome, referência ou categoria">
+                </div>
+              </div>
+              <div id="rest-grid" class="restaurant-grid"></div>
+            </div>
 
-        <div class="form-actions" style="margin-top:18px;flex-direction:column;gap:8px">
-         <button id="table-close" class="button" style="width:100%"><i data-lucide="receipt"></i> Fechar conta e imprimir</button>
-         <button id="table-cancel" class="button danger" style="width:100%"><i data-lucide="x"></i> Cancelar mesa</button>
-        </div>
-       </div>
-      </div>
-     </div>
-    </section>
+            <!-- Coluna direita: pedido -->
+            <div class="panel">
+              <div class="panel-head" style="margin-bottom:14px">
+                <div>
+                  <h3>Pedido atual</h3>
+                  <p class="subtle" id="rest-cart-count">0 artigos</p>
+                </div>
+              </div>
 
-    <!-- ===================== FACTURAÇÃO ===================== -->
-    <section id="billing" class="view" aria-label="Facturação">
-     <div class="section-head">
-      <div><h2>Facturação</h2><p class="subtle">Crie facturas e consulte o histórico de vendas.</p></div>
-     </div>
-     <div class="invoice-layout">
-      <div class="panel">
-       <h3>Nova factura</h3>
-       <p class="subtle">Seleccione os artigos e indique as quantidades.</p>
-       <div class="field"><label for="customer-name">Nome do cliente</label><input id="customer-name" placeholder="Ex.: Cliente balcão" maxlength="100"></div>
-       <div class="form-grid" style="margin-top:16px">
-        <div class="field"><label for="invoice-product">Mercadoria</label><select id="invoice-product"></select></div>
-        <div class="field"><label for="invoice-quantity">Quantidade</label><input id="invoice-quantity" type="number" min="1" step="1" value="1"></div>
-       </div>
-       <div style="margin-top:14px"><button id="add-line" class="button secondary"><i data-lucide="plus"></i> Adicionar artigo</button></div>
-       <div id="invoice-lines"></div>
-       <div class="invoice-total"><span>Total</span><strong id="draft-total">0,00 MT</strong></div>
-       <div class="form-actions"><button id="save-invoice" class="button"><i data-lucide="check"></i> Emitir factura</button></div>
-      </div>
-      <div class="panel">
-       <h3>Histórico</h3>
-       <p class="subtle">Facturas emitidas recentemente.</p>
-       <div id="invoice-history"></div>
-      </div>
-     </div>
-    </section>
+              <div class="field">
+                <label for="rest-customer">Cliente / Mesa</label>
+                <input id="rest-customer" placeholder="Cliente balcão" maxlength="100">
+              </div>
+
+              <div id="rest-cart" style="margin-top:16px"></div>
+
+              <div class="pos-total-row">
+                <span>Total</span><strong id="rest-total">0,00 MT</strong>
+              </div>
+
+              <div class="form-actions" style="margin-top:18px">
+                <button id="rest-checkout" class="button" style="width:100%">
+                  <i data-lucide="check"></i> Finalizar pedido
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================== FACTURAÇÃO ===================== -->
+        <section id="billing" class="view" aria-label="Facturação">
+          <div class="section-head">
+            <div>
+              <h2>Facturação</h2>
+              <p class="subtle">Crie facturas e consulte o histórico de vendas.</p>
+            </div>
+          </div>
+
+          <div class="invoice-layout">
+            <div class="panel">
+              <h3>Nova factura</h3>
+              <p class="subtle">Seleccione os artigos e indique as quantidades.</p>
+
+              <div class="field">
+                <label for="customer-name">Nome do cliente</label>
+                <input id="customer-name" placeholder="Ex.: Cliente balcão" maxlength="100" />
+              </div>
+
+              <div class="form-grid" style="margin-top: 16px">
+                <div class="field">
+                  <label for="invoice-product">Mercadoria</label>
+                  <select id="invoice-product"></select>
+                </div>
+                <div class="field">
+                  <label for="invoice-quantity">Quantidade</label>
+                  <input id="invoice-quantity" type="number" min="1" step="1" value="1" />
+                </div>
+              </div>
+
+              <div style="margin-top: 14px">
+                <button id="add-line" class="button secondary">
+                  <i data-lucide="plus"></i> Adicionar artigo
+                </button>
+              </div>
+
+              <div id="invoice-lines"></div>
+
+              <div class="invoice-total">
+                <span>Total</span><strong id="draft-total">0,00 MT</strong>
+              </div>
+
+              <div class="form-actions">
+                <button id="save-invoice" class="button">
+                  <i data-lucide="check"></i> Emitir factura
+                </button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Histórico</h3>
+              <p class="subtle">Facturas emitidas recentemente.</p>
+              <div id="invoice-history"></div>
+            </div>
+          </div>
+        </section>
+
         <!-- ===================== RELATÓRIOS ===================== -->
-    <section id="reports" class="view" aria-label="Relatórios">
-     <div class="section-head">
-      <div><h2>Relatório de vendas</h2><p class="subtle">Todas as vendas, por dia e por período.</p></div>
-      <button id="report-export" class="button secondary"><i data-lucide="download"></i> Exportar CSV</button>
-     </div>
+        <section id="reports" class="view" aria-label="Relatórios">
+          <div class="section-head">
+            <div>
+              <h2>Relatório de vendas</h2>
+              <p class="subtle">Todas as vendas, por dia e por período.</p>
+            </div>
+            <button id="report-export" class="button secondary">
+              <i data-lucide="download"></i> Exportar CSV
+            </button>
+          </div>
 
-     <!-- Filtros de data -->
-     <div class="panel" style="margin-bottom:22px">
-      <div class="report-filters">
-       <div class="field">
-        <label for="report-from">Data inicial</label>
-        <input id="report-from" type="date">
-       </div>
-       <div class="field">
-        <label for="report-to">Data final</label>
-        <input id="report-to" type="date">
-       </div>
-       <div class="preset-group" id="report-presets">
-        <button class="preset" data-preset="today">Hoje</button>
-        <button class="preset" data-preset="yesterday">Ontem</button>
-        <button class="preset" data-preset="7d">Últimos 7 dias</button>
-        <button class="preset" data-preset="30d">Últimos 30 dias</button>
-        <button class="preset" data-preset="month">Este mês</button>
-       </div>
-       <button id="report-apply" class="button">Aplicar</button>
+          <div class="panel" style="margin-bottom: 22px">
+            <div class="report-filters">
+              <div class="field">
+                <label for="report-from">Data inicial</label>
+                <input id="report-from" type="date" />
+              </div>
+              <div class="field">
+                <label for="report-to">Data final</label>
+                <input id="report-to" type="date" />
+              </div>
+              <div class="preset-group" id="report-presets">
+                <button class="preset" data-preset="today">Hoje</button>
+                <button class="preset" data-preset="yesterday">Ontem</button>
+                <button class="preset" data-preset="7d">Últimos 7 dias</button>
+                <button class="preset" data-preset="30d">Últimos 30 dias</button>
+                <button class="preset" data-preset="month">Este mês</button>
+              </div>
+              <button id="report-apply" class="button">Aplicar</button>
+            </div>
+          </div>
+
+          <div class="report-stats">
+            <div class="stat">
+              <div class="stat-icon"><i data-lucide="receipt"></i></div>
+              <div class="label">Vendas no período</div>
+              <div id="rep-count" class="number">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon"><i data-lucide="shopping-bag"></i></div>
+              <div class="label">Unidades vendidas</div>
+              <div id="rep-units" class="number">0</div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon"><i data-lucide="wallet"></i></div>
+              <div class="label">Receita do período</div>
+              <div id="rep-revenue" class="number">0,00 MT</div>
+            </div>
+            <div class="stat">
+              <div class="stat-icon"><i data-lucide="trending-up"></i></div>
+              <div class="label">Ticket médio</div>
+              <div id="rep-avg" class="number">0,00 MT</div>
+            </div>
+          </div>
+
+          <div class="panel report-section">
+            <h3>Resumo diário</h3>
+            <div id="report-daily" class="daily-bars"></div>
+          </div>
+
+          <div class="panel report-section">
+            <h3>Todas as vendas do período</h3>
+            <div id="report-table" class="table-wrap"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ===================== MODAL: MERCADORIA ===================== -->
+    <div
+      id="product-modal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-modal-title"
+    >
+      <div class="modal">
+        <div class="modal-head">
+          <h2 id="product-modal-title">Nova mercadoria</h2>
+          <button
+            class="icon-button"
+            type="button"
+            data-close="product-modal"
+            aria-label="Fechar"
+          >
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+
+        <form id="product-form">
+          <div class="form-grid">
+
+            <!-- Imagem do produto (ocupa as duas colunas) -->
+            <div class="field" style="grid-column: 1 / -1">
+              <label for="product-image">Imagem do produto</label>
+              <input id="product-image" type="file" accept="image/*" />
+              <div id="product-image-preview" style="margin-top: 10px; display: none">
+                <img
+                  id="product-image-thumb"
+                  alt="Pré-visualização"
+                  style="max-width: 180px; max-height: 180px; border-radius: 10px; border: 1px solid #ebe3da; object-fit: cover; background: #faf7f2"
+                />
+                <button
+                  type="button"
+                  id="product-image-remove"
+                  class="button ghost small"
+                  style="margin-left: 10px; vertical-align: top"
+                >
+                  <i data-lucide="trash-2"></i> Remover imagem
+                </button>
+              </div>
+            </div>
+
+            <!-- Nome -->
+            <div class="field">
+              <label for="product-name">Nome da mercadoria</label>
+              <input
+                id="product-name"
+                required
+                maxlength="100"
+                placeholder="Ex.: Pastel de nata"
+              />
+            </div>
+
+            <!-- Referência -->
+            <div class="field">
+              <label for="product-sku">Referência / Código de barras</label>
+              <input
+                id="product-sku"
+                required
+                maxlength="40"
+                placeholder="Ex.: PAS-001 ou 5601234567890"
+              />
+            </div>
+
+            <!-- Categoria -->
+            <div class="field">
+              <label for="product-category">Categoria</label>
+              <select id="product-category">
+                <option value="Pastelaria">Pastelaria</option>
+                <option value="Padaria">Padaria</option>
+                <option value="Bebidas">Bebidas</option>
+                <option value="Salgados">Salgados</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+
+            <!-- Preço -->
+            <div class="field">
+              <label for="product-price">Preço (MZN)</label>
+              <input
+                id="product-price"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                placeholder="0,00"
+              />
+            </div>
+
+            <!-- Stock -->
+            <div class="field">
+              <label for="product-stock">Quantidade em stock</label>
+              <input
+                id="product-stock"
+                type="number"
+                min="0"
+                step="1"
+                required
+                placeholder="0"
+              />
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="button secondary" data-close="product-modal">
+              Cancelar
+            </button>
+            <button id="product-submit" type="submit" class="button">
+              Guardar mercadoria
+            </button>
+          </div>
+        </form>
       </div>
-     </div>
-
-     <!-- Cartões de totais do período -->
-     <div class="report-stats">
-      <div class="stat"><div class="stat-icon"><i data-lucide="receipt"></i></div><div class="label">Vendas no período</div><div id="rep-count" class="number">0</div></div>
-      <div class="stat"><div class="stat-icon"><i data-lucide="shopping-bag"></i></div><div class="label">Unidades vendidas</div><div id="rep-units" class="number">0</div></div>
-      <div class="stat"><div class="stat-icon"><i data-lucide="wallet"></i></div><div class="label">Receita do período</div><div id="rep-revenue" class="number">0,00 MT</div></div>
-      <div class="stat"><div class="stat-icon"><i data-lucide="trending-up"></i></div><div class="label">Ticket médio</div><div id="rep-avg" class="number">0,00 MT</div></div>
-     </div>
-
-     <!-- Resumo diário (barras) -->
-     <div class="panel report-section">
-      <h3>Resumo diário</h3>
-      <div id="report-daily" class="daily-bars"></div>
-     </div>
-
-     <!-- Tabela de vendas -->
-     <div class="panel report-section">
-      <h3>Todas as vendas do período</h3>
-      <div id="report-table" class="table-wrap"></div>
-     </div>
-    </section>
-   </main>
-  </div>
-
-  <!-- ============================================================
-       MODAL: MERCADORIA
-       ============================================================ -->
-  <div id="product-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
-   <div class="modal">
-    <div class="modal-head">
-     <h2 id="product-modal-title">Nova mercadoria</h2>
-     <button class="icon-button" type="button" data-close="product-modal" aria-label="Fechar"><i data-lucide="x"></i></button>
     </div>
-    <form id="product-form">
-     <div class="form-grid">
-      <div class="field"><label for="product-name">Nome da mercadoria</label><input id="product-name" required maxlength="100" placeholder="Ex.: Pastel de nata"></div>
-      <div class="field"><label for="product-sku">Referência / Código de barras</label><input id="product-sku" required maxlength="40" placeholder="Ex.: PAS-001 ou 5601234567890"></div>
-      <div class="field"><label for="product-category">Categoria</label><select id="product-category"><option>Pastelaria</option><option>Padaria</option><option>Bebidas</option><option>Salgados</option><option>Outros</option></select></div>
-      <div class="field"><label for="product-price">Preço (MZN)</label><input id="product-price" type="number" min="0" step="0.01" required placeholder="0,00"></div>
-      <div class="field"><label for="product-stock">Quantidade em stock</label><input id="product-stock" type="number" min="0" step="1" required placeholder="0"></div>
-     </div>
-     <div class="form-actions">
-      <button type="button" class="button secondary" data-close="product-modal">Cancelar</button>
-      <button id="product-submit" type="submit" class="button">Guardar mercadoria</button>
-     </div>
-    </form>
-   </div>
-  </div>
 
-  <!-- ============================================================
-       MODAL: FACTURA (talão)
-       ============================================================ -->
-  <div id="invoice-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="invoice-modal-title">
-   <div class="modal">
-    <div class="modal-head print-hide">
-     <h2 id="invoice-modal-title">Factura emitida</h2>
-     <button class="icon-button" data-close="invoice-modal" aria-label="Fechar"><i data-lucide="x"></i></button>
-    </div>
-    <div id="invoice-paper" class="invoice-paper"></div>
-    <div class="form-actions print-hide">
-     <button class="button secondary" data-close="invoice-modal">Fechar</button>
-     <button id="print-invoice" class="button"><i data-lucide="printer"></i> Imprimir</button>
-    </div>
-   </div>
-  </div>
+    <!-- ===================== MODAL: FACTURA (talão) ===================== -->
+    <div
+      id="invoice-modal"
+      class="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="invoice-modal-title"
+    >
+      <div class="modal">
+        <div class="modal-head print-hide">
+          <h2 id="invoice-modal-title">Factura emitida</h2>
+          <button class="icon-button" data-close="invoice-modal" aria-label="Fechar">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
 
-  <script src="js/app.js"></script>
- </body>
+        <div id="invoice-paper" class="invoice-paper"></div>
+
+        <div class="form-actions print-hide">
+          <button class="button secondary" data-close="invoice-modal">Fechar</button>
+          <button id="print-invoice" class="button">
+            <i data-lucide="printer"></i> Imprimir
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
 </html>
