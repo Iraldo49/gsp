@@ -12,19 +12,14 @@ const blank = {
 };
 
 /* ============================================================
-   ★ CAMADA DE PERSISTÊNCIA LOCAL (substitui dataSdk)
-   ------------------------------------------------------------
-   Mantém a MESMA interface do dataSdk (init/create/update/delete)
-   para que o resto do código não precise de ser alterado.
-   Os dados ficam guardados no localStorage do navegador.
+   PERSISTÊNCIA LOCAL (substitui dataSdk)
    ============================================================ */
 const STORAGE_KEY = 'doce_co_records_v1';
 
 const dataSdk = (() => {
-  let cache = [];          // array de registos em memória
-  let onChanged = null;    // callback registado no init()
+  let cache = [];
+  let onChanged = null;
 
-  // Lê o array do localStorage (com fallback seguro)
   function read(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -35,7 +30,6 @@ const dataSdk = (() => {
     }
   }
 
-  // Escreve o array no localStorage
   function write(arr){
     try{
       localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
@@ -46,21 +40,17 @@ const dataSdk = (() => {
     }
   }
 
-  // Gera um ID único (equivalente ao __backendId)
   function newId(){
     return 'rec_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,9);
   }
 
-  // Notifica o exterior que os dados mudaram
   function emit(){
     if(typeof onChanged === 'function'){
-      // envia uma cópia para evitar mutações externas
       onChanged(cache.map(x => ({...x})));
     }
   }
 
   return {
-    // init({onDataChanged}) — devolve {isOk:true}
     async init(opts = {}){
       onChanged = opts.onDataChanged || null;
       cache = read();
@@ -68,7 +58,6 @@ const dataSdk = (() => {
       return {isOk:true, data: cache};
     },
 
-    // create(data) — adiciona um registo
     async create(data){
       const record = {...data, __backendId: newId(), created_at: data.created_at || new Date().toISOString()};
       cache.push(record);
@@ -77,7 +66,6 @@ const dataSdk = (() => {
       return {isOk:true, data:{...record}};
     },
 
-    // update(data) — atualiza pelo __backendId
     async update(data){
       if(!data?.__backendId) return {isOk:false, error:'missing_id'};
       const idx = cache.findIndex(x => x.__backendId === data.__backendId);
@@ -88,7 +76,6 @@ const dataSdk = (() => {
       return {isOk:true, data:{...cache[idx]}};
     },
 
-    // delete(record) — remove pelo __backendId
     async delete(record){
       if(!record?.__backendId) return {isOk:false, error:'missing_id'};
       const before = cache.length;
@@ -99,12 +86,10 @@ const dataSdk = (() => {
       return {isOk:true};
     },
 
-    // Expor lista (útil para debug)
     all(){ return cache.map(x => ({...x})); }
   };
 })();
 
-// expõe globalmente (o código mais abaixo chama window.dataSdk)
 window.dataSdk = dataSdk;
 
 /* ============================================================
@@ -117,20 +102,16 @@ let ready = false;
 let busy = false;
 let posCart = [];
 
-// Imagem atualmente selecionada no modal (data URL) e imagem original (para edição)
+// Imagem no modal de produto
 let pendingImageDataUrl = '';
 let currentEditingImage = '';
 
 /* ============================================================
    MESAS — estado e persistência
-   ------------------------------------------------------------
-   Cada mesa: { id, name, opened_at, orders:[{id,name,price,quantity}] }
-   Guardadas em localStorage (chave própria), independentes das facturas.
-   O stock só é abatido quando a conta é fechada.
    ============================================================ */
 const TABLES_KEY = 'doce_co_tables_v1';
-let tables = [];               // todas as mesas abertas
-let activeTableId = null;      // mesa atualmente em edição no painel
+let tables = [];
+let activeTableId = null;
 
 function readTables(){
   try{
@@ -144,15 +125,47 @@ function writeTables(arr){
 }
 function newTableId(){ return 'tbl_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7); }
 
+/* ============================================================
+   RESTAURANTE — estado do menu e do pedido
+   ------------------------------------------------------------
+   - restaurantMenu: catálogo próprio (localStorage, chave à parte)
+   - restCart: pedido atual em construção
+   - restCategory: tab ativa
+   ============================================================ */
+const RESTAURANT_MENU_KEY = 'doce_co_restaurant_menu_v1';
+const RESTAURANT_CATEGORIES = ['Hambúrguer', 'Sandes', 'Prego', 'Frango', 'Pizza', 'Outros'];
+
+let restaurantMenu = [];
+let restItemEditingId = null;
+let restItemImageDataUrl = '';
+let restItemCurrentImage = '';
+
+let restCart = [];
+let restCategory = 'todos';
+
+function readRestaurantMenu(){
+  try{
+    const raw = localStorage.getItem(RESTAURANT_MENU_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(err){ return []; }
+}
+function writeRestaurantMenu(arr){
+  try{ localStorage.setItem(RESTAURANT_MENU_KEY, JSON.stringify(arr)); return true; }
+  catch(err){ console.error('Falha a guardar menu do restaurante', err); return false; }
+}
+function newRestItemId(){
+  return 'rm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,7);
+}
+function restaurantProducts(){ return restaurantMenu.slice(); }
+
+/* ============================================================
+   SELETORES DE REGISTOS
+   ============================================================ */
 const products = () => records.filter(x => x.record_type === 'product');
 const invoices = () => records.filter(x => x.record_type === 'invoice');
 
 /* ============================================================
    IMAGEM — redimensiona e converte para data URL (JPEG)
-   ------------------------------------------------------------
-   - Limita o lado maior a `maxSize` px.
-   - Qualidade JPEG configurável.
-   - Se o ficheiro for pequeno, evita redimensionar.
    ============================================================ */
 function fileToResizedDataURL(file, maxSize = 600, quality = 0.8) {
   return new Promise((resolve, reject) => {
@@ -167,7 +180,6 @@ function fileToResizedDataURL(file, maxSize = 600, quality = 0.8) {
       img.onerror = () => reject(new Error('Não foi possível ler a imagem.'));
       img.onload = () => {
         let { width, height } = img;
-        // Só redimensiona se exceder o limite
         if (width > maxSize || height > maxSize) {
           if (width >= height) {
             height = Math.round((height * maxSize) / width);
@@ -181,7 +193,6 @@ function fileToResizedDataURL(file, maxSize = 600, quality = 0.8) {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-        // Fundo branco para PNGs com transparência (JPEG não suporta alpha)
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
@@ -194,10 +205,7 @@ function fileToResizedDataURL(file, maxSize = 600, quality = 0.8) {
 }
 
 /* ============================================================
-   UPLOAD DE IMAGEM — pré-visualização e remoção (defensivo)
-   ------------------------------------------------------------
-   Se o HTML não tiver os elementos (#product-image, etc.),
-   não rebenta — apenas não liga os handlers.
+   UPLOAD DE IMAGEM DO PRODUTO (defensivo)
    ============================================================ */
 (function initImageUpload(){
   const input  = $('product-image');
@@ -217,7 +225,7 @@ function fileToResizedDataURL(file, maxSize = 600, quality = 0.8) {
         if(wrap)  wrap.style.display = 'block';
       } catch (err) {
         notice(err.message || 'Não foi possível carregar a imagem.');
-        e.target.value = ''; // limpa input
+        e.target.value = '';
       }
     });
   }
@@ -225,7 +233,7 @@ function fileToResizedDataURL(file, maxSize = 600, quality = 0.8) {
   if(remove){
     remove.addEventListener('click', () => {
       pendingImageDataUrl = '';
-      currentEditingImage = '';        // força remover mesmo em edição
+      currentEditingImage = '';
       if(input) input.value = '';
       const thumb = $('product-image-thumb');
       const wrap  = $('product-image-preview');
@@ -247,9 +255,6 @@ function notice(text, type='error'){
 
 /* ============================================================
    SIDEBAR — ABRIR / FECHAR / COLAPSAR
-   ------------------------------------------------------------
-   - Desktop (>900px): botão "panel-left-close" colapsa a sidebar.
-   - Mobile (<=900px): botão "menu" no header abre como overlay.
    ============================================================ */
 const SIDEBAR_KEY = 'doce_co_sidebar_collapsed';
 const MOBILE_BP = 900;
@@ -276,7 +281,6 @@ function updateToggleIcon(){
   lucide.createIcons();
 }
 
-// Clique no botão de toggle (dentro da sidebar)
 const sbToggle = $('sidebar-toggle');
 if(sbToggle){
   sbToggle.addEventListener('click', () => {
@@ -291,7 +295,6 @@ if(sbToggle){
   });
 }
 
-// Clique no botão hambúrguer (header, só mobile)
 const menuBtn = $('menu-button');
 if(menuBtn){
   menuBtn.addEventListener('click', () => {
@@ -300,7 +303,6 @@ if(menuBtn){
   });
 }
 
-// Clique no backdrop fecha a sidebar no mobile
 const sbBackdrop = $('sidebar-backdrop');
 if(sbBackdrop){
   sbBackdrop.addEventListener('click', () => {
@@ -309,7 +311,6 @@ if(sbBackdrop){
   });
 }
 
-// ESC fecha a sidebar no mobile
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape' && document.body.classList.contains('sidebar-open')){
     document.body.classList.remove('sidebar-open');
@@ -317,7 +318,6 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Reavaliar ao redimensionar (transição entre mobile/desktop)
 let resizeTimer = null;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
@@ -329,7 +329,6 @@ window.addEventListener('resize', () => {
   }, 120);
 });
 
-// Estado inicial da sidebar
 applySidebarState();
 
 /* ============================================================
@@ -340,12 +339,13 @@ function setView(view){
   document.querySelectorAll('.nav-button').forEach(e => e.classList.toggle('active', e.dataset.view === view));
 
   const titles = {
-    overview:['Bom dia, pastelaria!','Uma visão simples do seu negócio.'],
-    products:['As suas mercadorias','Mantenha tudo organizado e actualizado.'],
-    vendas:['Vendas','Pesquise por código de barras e registe vendas rapidamente.'],
-    tables:['Mesas','Pedidos abertos e fecho de conta.'],
-    billing:['Facturação','Cada venda, bem registada.'],
-    reports:['Relatórios','Analise as vendas por dia e por período.']
+    overview:  ['Bom dia, pastelaria!','Uma visão simples do seu negócio.'],
+    products:  ['As suas mercadorias','Mantenha tudo organizado e actualizado.'],
+    vendas:    ['Vendas','Pesquise por código de barras e registe vendas rapidamente.'],
+    tables:    ['Mesas','Pedidos abertos e fecho de conta.'],
+    restaurant:['Restaurante','Hambúrgueres, sandes, pregos, frango, pizza e mais.'],
+    billing:   ['Facturação','Cada venda, bem registada.'],
+    reports:   ['Relatórios','Analise as vendas por dia e por período.']
   };
   $('page-title').textContent = titles[view][0];
   $('page-subtitle').textContent = titles[view][1];
@@ -371,6 +371,12 @@ function setView(view){
     }
   }
 
+  if(view === 'restaurant'){
+    renderRestTabs();
+    renderRestGrid();
+    renderRestCart();
+  }
+
   if(view === 'reports'){
     if(!reportState.from && !reportState.to) applyPreset('today');
     else renderReport();
@@ -379,9 +385,6 @@ function setView(view){
 
 /* ============================================================
    TABELA GENÉRICA DE PRODUTOS
-   ------------------------------------------------------------
-   - Miniatura dentro do <td class="product-name"> quando existe.
-   - Ações Editar/Eliminar na última coluna (quando actions=true).
    ============================================================ */
 function table(rows, actions=false){
   if(!rows.length){
@@ -449,7 +452,10 @@ function render(){
   renderDraft();
   renderPosResults();
   renderPosCart();
-  renderTables();                          // mantém a grelha de mesas sincronizada
+  renderTables();
+  renderRestTabs();
+  renderRestGrid();
+  renderRestCart();
   if($('report-table')) renderReport();
   lucide.createIcons();
 }
@@ -609,6 +615,9 @@ function posCheckout(){
   })();
 }
 
+/* ============================================================
+   TALÃO (papel da factura)
+   ============================================================ */
 function showInvoicePaper(inv){
   let items = [];
   try{ items = JSON.parse(inv.items_json||'[]'); }catch(err){}
@@ -667,7 +676,6 @@ function openProduct(p){
   $('product-price').value = p?.price ?? '';
   $('product-stock').value = p?.stock ?? '';
 
-  /* --- Imagem (tolerante à ausência dos elementos no HTML) --- */
   pendingImageDataUrl = '';
   currentEditingImage = p?.image || '';
 
@@ -925,28 +933,21 @@ $('pos-checkout').onclick = posCheckout;
 /* ============================================================
    RELATÓRIOS DE VENDAS
    ============================================================ */
-
-// Estado atual do filtro (data local ISO: YYYY-MM-DD)
 const reportState = { from:'', to:'', preset:'' };
-
-// Converte uma data local (YYYY-MM-DD) em "chave" de comparação
 const dateKey = iso => iso ? iso.slice(0,10) : '';
 
-// Hoje em ISO local (não UTC)
 function todayISO(){
   const d = new Date();
   const off = d.getTimezoneOffset();
   return new Date(d.getTime() - off*60000).toISOString().slice(0,10);
 }
 
-// Soma N dias a uma data ISO
 function addDaysISO(iso, days){
   const d = new Date(iso + 'T00:00:00');
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0,10);
 }
 
-// Aplica um preset ("today", "yesterday", "7d", "30d", "month")
 function applyPreset(preset){
   const today = todayISO();
   let from = today, to = today;
@@ -974,7 +975,6 @@ function applyPreset(preset){
   renderReport();
 }
 
-// Devolve as facturas dentro do período selecionado
 function invoicesInRange(){
   const from = reportState.from || '0000-00-00';
   const to = reportState.to || '9999-99-99';
@@ -986,7 +986,6 @@ function invoicesInRange(){
     .sort((a,b) => String(b.created_at).localeCompare(String(a.created_at)));
 }
 
-// Soma as unidades de uma factura
 function invoiceUnits(inv){
   try{
     const items = JSON.parse(inv.items_json || '[]');
@@ -994,11 +993,9 @@ function invoiceUnits(inv){
   }catch(err){ return 0; }
 }
 
-// Desenha o relatório completo
 function renderReport(){
   const list = invoicesInRange();
 
-  // ---- Totais do período ----
   const totalRevenue = list.reduce((a,x) => a + Number(x.total||0), 0);
   const totalUnits = list.reduce((a,x) => a + invoiceUnits(x), 0);
   const avg = list.length ? totalRevenue / list.length : 0;
@@ -1008,7 +1005,6 @@ function renderReport(){
   $('rep-revenue').textContent = money(totalRevenue);
   $('rep-avg').textContent = money(avg);
 
-  // ---- Resumo diário (agrupa por dia) ----
   const byDay = {};
   list.forEach(inv => {
     const k = dateKey(inv.created_at);
@@ -1034,7 +1030,6 @@ function renderReport(){
       }).join('')
     : '<div class="report-empty"><i data-lucide="calendar-x"></i>Sem vendas no período selecionado.</div>';
 
-  // ---- Tabela de vendas ----
   if(!list.length){
     $('report-table').innerHTML = '<div class="report-empty"><i data-lucide="receipt"></i>Nenhuma venda registada no período.</div>';
   } else {
@@ -1060,7 +1055,6 @@ function renderReport(){
   lucide.createIcons();
 }
 
-// Exporta o período atual para CSV
 function exportReportCSV(){
   const list = invoicesInRange();
   if(!list.length){ notice('Sem vendas para exportar no período.', 'error'); return; }
@@ -1080,13 +1074,12 @@ function exportReportCSV(){
             artigos, invoiceUnits(inv), Number(inv.total||0).toFixed(2)];
   });
 
-  // Escapa campos que tenham vírgula/ponto-e-vírgula/aspas
   const esc = v => '"' + String(v).replace(/"/g,'""') + '"';
   const csv = [header.map(esc).join(';')]
     .concat(rows.map(r => r.map(esc).join(';')))
     .join('\r\n');
 
-  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'}); // BOM para Excel
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1096,7 +1089,6 @@ function exportReportCSV(){
   notice('CSV exportado.', 'success');
 }
 
-// Eventos do relatório
 $('report-apply').onclick = () => {
   reportState.from = $('report-from').value;
   reportState.to = $('report-to').value;
@@ -1129,17 +1121,13 @@ $('report-export').onclick = exportReportCSV;
 /* ============================================================
    MESAS — render e operações
    ============================================================ */
-
-// Total de uma mesa (soma dos pedidos)
 function tableTotal(t){
   return (t.orders||[]).reduce((a,x) => a + Number(x.price)*Number(x.quantity), 0);
 }
-// Nº de unidades
 function tableUnits(t){
   return (t.orders||[]).reduce((a,x) => a + Number(x.quantity), 0);
 }
 
-// Desenha a grelha de mesas + um "slot" para abrir nova
 function renderTables(){
   if(!$('tables-grid')) return;
   const cards = tables.map(t => {
@@ -1171,14 +1159,12 @@ function renderTables(){
   lucide.createIcons();
 }
 
-// Abre o painel de detalhe de uma mesa
 function openTableDetail(tableId){
   const t = tables.find(x => x.id === tableId);
   if(!t){ activeTableId = null; $('table-detail').style.display='none'; return; }
   activeTableId = tableId;
   $('table-detail').style.display = 'block';
 
-  // Cabeçalho
   const openedAt = new Date(t.opened_at);
   $('table-head').innerHTML =
     '<div>' +
@@ -1187,11 +1173,9 @@ function openTableDetail(tableId){
     '</div>' +
     '<div class="th-total">'+money(tableTotal(t))+'</div>';
 
-  // Contagem
   const units = tableUnits(t);
   $('table-order-count').textContent = units + (units===1 ? ' artigo' : ' artigos');
 
-  // Linhas do pedido
   $('table-order').innerHTML = (t.orders && t.orders.length)
     ? t.orders.map((x,i) => '<div class="table-order-line">' +
         '<div class="to-name">'+escapeHtml(x.name)+'<small>'+money(x.price)+' / un.</small></div>' +
@@ -1207,13 +1191,11 @@ function openTableDetail(tableId){
 
   $('table-total').textContent = money(tableTotal(t));
 
-  // Produtos disponíveis (filtro)
   renderTableResults();
   lucide.createIcons();
   setTimeout(() => $('table-barcode').focus(), 60);
 }
 
-// Grelha de produtos para adicionar ao pedido
 function renderTableResults(){
   if(!$('table-results')) return;
   const q = ($('table-search').value || '').trim().toLowerCase();
@@ -1225,7 +1207,6 @@ function renderTableResults(){
   $('table-results').innerHTML = list.length
     ? list.map(x => {
         const stock = Number(x.stock||0);
-        // Stock disponível = stock atual − já pedido nesta mesa (para o mesmo produto)
         const t = tables.find(tt => tt.id === activeTableId);
         const inTable = t ? (t.orders.find(o => o.id === x.__backendId)?.quantity || 0) : 0;
         const available = stock - inTable;
@@ -1244,14 +1225,12 @@ function renderTableResults(){
   lucide.createIcons();
 }
 
-// Adiciona um produto ao pedido da mesa ativa
 function tableAddProduct(productId, qty=1){
   const t = tables.find(x => x.id === activeTableId);
   if(!t) return;
   const p = products().find(x => x.__backendId === productId);
   if(!p) return;
 
-  // Quantidade já pedida nesta mesa para este produto
   const line = t.orders.find(o => o.id === p.__backendId);
   const inTable = line?.quantity || 0;
   if(inTable + qty > Number(p.stock)){
@@ -1263,15 +1242,13 @@ function tableAddProduct(productId, qty=1){
   else t.orders.push({id:p.__backendId, name:p.name, price:Number(p.price), quantity:qty});
 
   writeTables(tables);
-  openTableDetail(activeTableId); // re-renderiza o painel
+  openTableDetail(activeTableId);
   $('status').className = 'status';
 }
 
-// Abre uma nova mesa: pede nome
 function createTable(){
   const name = (prompt('Nome da mesa (ex.: "Mesa 3", "João", "Esplanada 2"):') || '').trim();
   if(!name) return;
-  // Evita duplicados exatos (case-insensitive)
   if(tables.some(t => t.name.toLowerCase() === name.toLowerCase())){
     notice('Já existe uma mesa com esse nome.');
     return;
@@ -1284,7 +1261,6 @@ function createTable(){
   notice('Mesa "'+name+'" aberta.', 'success');
 }
 
-// Fecha a conta: cria factura, abate stock, imprime, remove a mesa
 async function closeTable(){
   const t = tables.find(x => x.id === activeTableId);
   if(!t) return;
@@ -1294,7 +1270,6 @@ async function closeTable(){
   }
   if(!confirm('Fechar a conta de "'+t.name+'" e imprimir o recibo?')) return;
 
-  // Valida stock atual
   for(const line of t.orders){
     const p = products().find(x => x.__backendId === line.id);
     if(!p || Number(p.stock) < line.quantity){
@@ -1322,7 +1297,6 @@ async function closeTable(){
     const r = await window.dataSdk.create(invoice);
     if(!r.isOk){ notice('Não foi possível fechar a conta. Tente novamente.'); return; }
 
-    // Abate stock
     let failed = false;
     for(const line of lines){
       const p = products().find(x => x.__backendId === line.id);
@@ -1332,7 +1306,6 @@ async function closeTable(){
       else p.stock = Number(p.stock) - line.quantity;
     }
 
-    // Remove a mesa
     tables = tables.filter(x => x.id !== t.id);
     writeTables(tables);
     activeTableId = null;
@@ -1344,11 +1317,9 @@ async function closeTable(){
       ? 'Conta fechada, mas não foi possível actualizar todo o stock.'
       : 'Conta fechada e stock atualizado.', failed ? 'error' : 'success');
 
-    // Abre o talão para impressão
     const inv = records.find(x => x.__backendId === r.data?.__backendId);
     if(inv){
       showInvoicePaper(inv);
-      // dispara impressão automaticamente após abrir o talão
       setTimeout(() => window.print(), 300);
     }
   }catch(err){
@@ -1363,7 +1334,6 @@ async function closeTable(){
   }
 }
 
-// Cancela a mesa sem criar factura
 function cancelTable(){
   const t = tables.find(x => x.id === activeTableId);
   if(!t) return;
@@ -1385,9 +1355,7 @@ if(tableNewBtn) tableNewBtn.onclick = createTable;
 const tablesGrid = $('tables-grid');
 if(tablesGrid){
   tablesGrid.onclick = e => {
-    // Abrir nova mesa pelo slot
     if(e.target.closest('#table-new-slot')){ createTable(); return; }
-    // Abrir mesa existente
     const card = e.target.closest('[data-table-open]');
     if(card){ openTableDetail(card.dataset.tableOpen); }
   };
@@ -1468,22 +1436,378 @@ const tableCancelBtn = $('table-cancel');
 if(tableCancelBtn) tableCancelBtn.onclick = cancelTable;
 
 /* ============================================================
-   INICIALIZAÇÃO
+   RESTAURANTE — tabs, cart, menu (render)
    ============================================================ */
 
-// Data de hoje no cabeçalho
+// Tabs de categoria
+function renderRestTabs(){
+  if(!$('rest-tabs')) return;
+  const all = restaurantProducts();
+  const tabs = [
+    {key:'todos', label:'Todos', icon:'layout-grid', count: all.length},
+    ...RESTAURANT_CATEGORIES.map(cat => ({
+      key: cat,
+      label: cat,
+      icon: {
+        'Hambúrguer':'beef',
+        'Sandes':'sandwich',
+        'Prego':'utensils',
+        'Frango':'drumstick',
+        'Pizza':'pizza',
+        'Outros':'circle-ellipsis'
+      }[cat] || 'circle',
+      count: all.filter(p => p.category === cat).length
+    }))
+  ];
+
+  $('rest-tabs').innerHTML = tabs.map(t =>
+    '<button class="menu-tab ' + (restCategory === t.key ? 'active' : '') + '" data-rest-cat="' + escapeHtml(t.key) + '">' +
+      '<i data-lucide="' + t.icon + '"></i>' +
+      escapeHtml(t.label) +
+      '<span class="tab-count">' + t.count + '</span>' +
+    '</button>'
+  ).join('');
+  lucide.createIcons();
+}
+
+// Grelha de cartões do menu
+function renderRestGrid(){
+  if(!$('rest-grid')) return;
+  const q = ($('rest-search').value || '').trim().toLowerCase();
+  const list = restaurantProducts().filter(p => {
+    if(restCategory !== 'todos' && p.category !== restCategory) return false;
+    if(!q) return true;
+    return (p.name + ' ' + (p.description||'') + ' ' + p.category).toLowerCase().includes(q);
+  });
+
+  $('rest-grid').innerHTML = list.length
+    ? list.map(p => {
+        const soldOut = p.available === false || p.available === 0 || p.available === '0';
+        return '<div class="rest-card" data-rest-item="' + escapeHtml(p.id) + '" role="button" tabindex="0" ' + (soldOut ? 'aria-disabled="true"' : '') + '>' +
+          '<div class="rc-actions">' +
+            '<button type="button" data-rest-edit="' + escapeHtml(p.id) + '" title="Editar"><i data-lucide="pencil"></i></button>' +
+            '<button type="button" data-rest-delete="' + escapeHtml(p.id) + '" title="Eliminar"><i data-lucide="trash-2"></i></button>' +
+          '</div>' +
+          (p.image
+            ? '<img class="rc-img" src="' + escapeHtml(p.image) + '" alt="">'
+            : '<div class="rc-img placeholder"><i data-lucide="image"></i></div>') +
+          '<div class="rc-body">' +
+            '<span class="rc-name">' + escapeHtml(p.name) + '</span>' +
+            (p.description
+              ? '<span class="rc-desc">' + escapeHtml(p.description) + '</span>'
+              : '') +
+            '<span class="rc-meta">' + escapeHtml(p.category) + '</span>' +
+            '<span class="rc-price">' + money(p.price) + '</span>' +
+            '<span class="rc-stock ' + (soldOut ? 'low' : '') + '">' +
+              (soldOut ? 'Esgotado' : 'Disponível') +
+            '</span>' +
+          '</div>' +
+        '</div>';
+      }).join('')
+    : '<div class="empty" style="grid-column:1/-1"><i data-lucide="utensils-crossed"></i>Ainda não há itens neste menu.<br><small>Clique em "Novo item" para começar.</small></div>';
+  lucide.createIcons();
+}
+
+// Carrinho do restaurante
+function renderRestCart(){
+  if(!$('rest-cart')) return;
+  const total = restCart.reduce((a,x) => a + x.price * x.quantity, 0);
+  const count = restCart.reduce((a,x) => a + x.quantity, 0);
+  $('rest-total').textContent = money(total);
+  $('rest-cart-count').textContent = count + (count === 1 ? ' artigo' : ' artigos');
+
+  if(!restCart.length){
+    $('rest-cart').innerHTML = '<div class="empty"><i data-lucide="shopping-cart"></i>O pedido está vazio.<br><small>Escolha um produto do menu.</small></div>';
+  } else {
+    $('rest-cart').innerHTML = restCart.map((x,i) =>
+      '<div class="rest-cart-line">' +
+        '<div class="rcl-name">' + escapeHtml(x.name) + '<small>' + money(x.price) + ' / un.</small></div>' +
+        '<div class="qty-controls">' +
+          '<button data-rest-qty="' + i + '" data-rest-delta="-1" aria-label="Diminuir"><i data-lucide="minus"></i></button>' +
+          '<span>' + x.quantity + '</span>' +
+          '<button data-rest-qty="' + i + '" data-rest-delta="1" aria-label="Aumentar"><i data-lucide="plus"></i></button>' +
+        '</div>' +
+        '<div class="rcl-sub">' + money(x.price * x.quantity) + '</div>' +
+        '<button class="icon-button" data-rest-remove="' + i + '" aria-label="Remover"><i data-lucide="trash-2"></i></button>' +
+      '</div>'
+    ).join('');
+  }
+  lucide.createIcons();
+}
+
+// Adiciona item do menu ao carrinho
+function restAddProduct(item, qty = 1){
+  if(!item) return;
+  if(item.available === false || item.available === 0 || item.available === '0'){
+    notice('"' + item.name + '" está esgotado.');
+    return;
+  }
+  const existing = restCart.find(x => x.id === item.id);
+  if(existing) existing.quantity += qty;
+  else restCart.push({id:item.id, name:item.name, price:Number(item.price), quantity:qty});
+  $('status').className = 'status';
+  renderRestCart();
+}
+
+// Finaliza pedido do restaurante (sem abate de stock)
+function restCheckout(){
+  if(!ready || busy) return;
+  if(!restCart.length){ notice('Adicione pelo menos um artigo ao pedido.'); return; }
+  if(records.length >= 999){ notice('Limite de 999 registos atingido.'); return; }
+
+  busy = true;
+  $('rest-checkout').disabled = true;
+  $('rest-checkout').textContent = 'A processar…';
+
+  const lines = restCart.map(x => ({...x}));
+  const invoice = {
+    record_type:'invoice',
+    ...blank,
+    customer: ($('rest-customer').value.trim() || 'Cliente balcão'),
+    items_json: JSON.stringify(lines.map(({name,price,quantity}) => ({name,price,quantity}))),
+    total: lines.reduce((a,x) => a + x.price * x.quantity, 0),
+    invoice_number: 'FT-' + Date.now().toString(36).toUpperCase(),
+    created_at: new Date().toISOString()
+  };
+
+  (async () => {
+    try{
+      const r = await window.dataSdk.create(invoice);
+      if(!r.isOk){ notice('Não foi possível registar o pedido. Tente novamente.'); return; }
+
+      restCart = [];
+      $('rest-customer').value = '';
+      render();
+      notice('Pedido registado.', 'success');
+
+      const inv = records.find(x => x.__backendId === r.data?.__backendId);
+      if(inv) showInvoicePaper(inv);
+    }catch(err){
+      notice('Ocorreu um erro. Verifique o histórico antes de tentar novamente.');
+    }finally{
+      busy = false;
+      $('rest-checkout').disabled = false;
+      $('rest-checkout').innerHTML = '<i data-lucide="check"></i> Finalizar pedido';
+      lucide.createIcons();
+    }
+  })();
+}
+
+/* ============================================================
+   RESTAURANTE — CRUD do menu
+   ============================================================ */
+function openRestItem(item){
+  restItemEditingId = item?.id || null;
+
+  $('rest-item-modal-title').textContent = item ? 'Editar item' : 'Novo item';
+  $('rest-item-submit').textContent = item ? 'Guardar alterações' : 'Guardar item';
+
+  $('rest-item-name').value = item?.name || '';
+  $('rest-item-category').value = item?.category || 'Hambúrguer';
+  $('rest-item-desc').value = item?.description || '';
+  $('rest-item-price').value = item?.price ?? '';
+  $('rest-item-available').value = (item?.available === false || item?.available === 0 || item?.available === '0') ? '0' : '1';
+
+  restItemImageDataUrl = '';
+  restItemCurrentImage = item?.image || '';
+
+  const input = $('rest-item-image');
+  const thumb = $('rest-item-image-thumb');
+  const wrap  = $('rest-item-image-preview');
+  if(input) input.value = '';
+  if(restItemCurrentImage){
+    if(thumb) thumb.src = restItemCurrentImage;
+    if(wrap)  wrap.style.display = 'block';
+  } else {
+    if(thumb) thumb.src = '';
+    if(wrap)  wrap.style.display = 'none';
+  }
+
+  $('rest-item-modal').classList.add('open');
+  $('rest-item-name').focus();
+  lucide.createIcons();
+}
+
+function closeRestItemModal(){ $('rest-item-modal').classList.remove('open'); }
+
+const restItemForm = $('rest-item-form');
+if(restItemForm){
+  restItemForm.onsubmit = e => {
+    e.preventDefault();
+    const name = $('rest-item-name').value.trim();
+    const category = $('rest-item-category').value;
+    const description = $('rest-item-desc').value.trim();
+    const price = Number($('rest-item-price').value);
+    const available = $('rest-item-available').value === '1';
+    const image = restItemImageDataUrl || restItemCurrentImage || '';
+
+    if(!name || !category || !Number.isFinite(price) || price < 0){
+      notice('Verifique os dados do item.');
+      return;
+    }
+
+    if(restItemEditingId){
+      const idx = restaurantMenu.findIndex(x => x.id === restItemEditingId);
+      if(idx === -1){ notice('Item não encontrado.'); return; }
+      restaurantMenu[idx] = {
+        ...restaurantMenu[idx],
+        name, category, description, price, available, image
+      };
+    } else {
+      restaurantMenu.push({
+        id: newRestItemId(),
+        name, category, description, price, available, image,
+        created_at: new Date().toISOString()
+      });
+    }
+
+    if(!writeRestaurantMenu(restaurantMenu)){
+      notice('Não foi possível guardar o item.');
+      return;
+    }
+
+    closeRestItemModal();
+    renderRestTabs();
+    renderRestGrid();
+    notice(restItemEditingId ? 'Item actualizado.' : 'Item adicionado ao menu.', 'success');
+  };
+}
+
+(function initRestItemImage(){
+  const input  = $('rest-item-image');
+  const remove = $('rest-item-image-remove');
+
+  if(input){
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      try{
+        const dataUrl = await fileToResizedDataURL(file, 600, 0.8);
+        restItemImageDataUrl = dataUrl;
+        const thumb = $('rest-item-image-thumb');
+        const wrap  = $('rest-item-image-preview');
+        if(thumb) thumb.src = dataUrl;
+        if(wrap)  wrap.style.display = 'block';
+      }catch(err){
+        notice(err.message || 'Não foi possível carregar a imagem.');
+        e.target.value = '';
+      }
+    });
+  }
+
+  if(remove){
+    remove.addEventListener('click', () => {
+      restItemImageDataUrl = '';
+      restItemCurrentImage = '';
+      if(input) input.value = '';
+      const thumb = $('rest-item-image-thumb');
+      const wrap  = $('rest-item-image-preview');
+      if(thumb) thumb.src = '';
+      if(wrap)  wrap.style.display = 'none';
+    });
+  }
+})();
+
+/* ============================================================
+   RESTAURANTE — eventos
+   ============================================================ */
+const restSearch = $('rest-search');
+if(restSearch) restSearch.oninput = renderRestGrid;
+
+const restTabs = $('rest-tabs');
+if(restTabs){
+  restTabs.onclick = e => {
+    const b = e.target.closest('[data-rest-cat]');
+    if(!b) return;
+    restCategory = b.dataset.restCat;
+    renderRestTabs();
+    renderRestGrid();
+  };
+}
+
+const restGrid = $('rest-grid');
+if(restGrid){
+  restGrid.onclick = e => {
+    const editBtn = e.target.closest('[data-rest-edit]');
+    if(editBtn){
+      const item = restaurantMenu.find(x => x.id === editBtn.dataset.restEdit);
+      if(item) openRestItem(item);
+      return;
+    }
+
+    const delBtn = e.target.closest('[data-rest-delete]');
+    if(delBtn){
+      const item = restaurantMenu.find(x => x.id === delBtn.dataset.restDelete);
+      if(!item) return;
+      if(!confirm('Eliminar "' + item.name + '" do menu?')) return;
+      restaurantMenu = restaurantMenu.filter(x => x.id !== item.id);
+      writeRestaurantMenu(restaurantMenu);
+      restCart = restCart.filter(x => x.id !== item.id);
+      renderRestCart();
+      renderRestTabs();
+      renderRestGrid();
+      notice('Item eliminado.', 'success');
+      return;
+    }
+
+    const card = e.target.closest('[data-rest-item]');
+    if(!card) return;
+    const item = restaurantMenu.find(x => x.id === card.dataset.restItem);
+    if(item) restAddProduct(item, 1);
+  };
+}
+
+const restCartEl = $('rest-cart');
+if(restCartEl){
+  restCartEl.onclick = e => {
+    const qty = e.target.closest('[data-rest-qty]');
+    const rem = e.target.closest('[data-rest-remove]');
+
+    if(qty){
+      const i = Number(qty.dataset.restQty);
+      const delta = Number(qty.dataset.restDelta);
+      const line = restCart[i];
+      if(!line) return;
+      const newQty = line.quantity + delta;
+      if(newQty <= 0){ restCart.splice(i, 1); }
+      else { line.quantity = newQty; }
+      renderRestCart();
+      return;
+    }
+    if(rem){ restCart.splice(Number(rem.dataset.restRemove), 1); renderRestCart(); }
+  };
+}
+
+const restClear = $('rest-clear');
+if(restClear){
+  restClear.onclick = () => {
+    if(!restCart.length && !$('rest-customer').value) return;
+    restCart = [];
+    $('rest-customer').value = '';
+    renderRestCart();
+    notice('Pedido limpo.', 'success');
+  };
+}
+
+const restAddItemBtn = $('rest-add-item');
+if(restAddItemBtn) restAddItemBtn.onclick = () => openRestItem(null);
+
+const restCheckoutBtn = $('rest-checkout');
+if(restCheckoutBtn) restCheckoutBtn.onclick = restCheckout;
+
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
 $('today-label').textContent = new Intl.DateTimeFormat('pt-PT', {
   day:'numeric', month:'long', year:'numeric'
 }).format(new Date());
 
-// Cria os ícones Lucide iniciais
 lucide.createIcons();
 
-// Carrega as mesas guardadas no localStorage
 tables = readTables();
+restaurantMenu = readRestaurantMenu();
 if(activeTableId && !tables.some(t => t.id === activeTableId)) activeTableId = null;
 
-// Pré-configura o período do relatório ("Hoje")
 (function initReportDefaults(){
   const t = todayISO();
   reportState.from = t;
@@ -1495,7 +1819,6 @@ if(activeTableId && !tables.some(t => t.id === activeTableId)) activeTableId = n
   });
 })();
 
-// Liga-se ao dataSdk local (localStorage) e renderiza
 (async () => {
   try{
     const result = await window.dataSdk.init({
